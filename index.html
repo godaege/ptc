@@ -34,6 +34,21 @@ function resize(){
 resize();
 window.addEventListener("resize",resize);
 
+
+// 마우스
+const mouse = {
+  x:null,
+  y:null,
+  radius:140
+};
+
+window.addEventListener("mousemove", e=>{
+  mouse.x = e.x;
+  mouse.y = e.y;
+});
+
+
+// 파티클 생성
 const particles = [];
 const particleCount = 120;
 
@@ -43,33 +58,77 @@ for(let i=0;i<particleCount;i++){
     x: Math.random()*canvas.width,
     y: Math.random()*canvas.height,
     size: Math.random()*2+0.5,
+
     speedY: Math.random()*0.4+0.1,
     speedX: (Math.random()-0.5)*0.2,
-    opacity: Math.random()*0.6+0.3
+
+    vx:0,
+    vy:0,
+
+    baseOpacity: Math.random()*0.6+0.3
   });
 
 }
 
+
+// 애니메이션
 function draw(){
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // 파티클
   particles.forEach(p=>{
 
-    p.y -= p.speedY;
-    p.x += p.speedX;
+    let glow = 0;
+
+    if(mouse.x !== null){
+
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+
+      if(dist < mouse.radius){
+
+        const force = (mouse.radius - dist) / mouse.radius;
+
+        // 물속처럼 부드러운 밀림
+        p.vx += dx * force * 0.002;
+        p.vy += dy * force * 0.002;
+
+        glow = force;
+
+      }
+    }
+
+    // 기본 이동
+    p.vy -= p.speedY * 0.02;
+    p.vx += p.speedX * 0.02;
+
+    // 물 느낌 마찰
+    p.vx *= 0.96;
+    p.vy *= 0.96;
+
+    p.x += p.vx;
+    p.y += p.vy;
 
     if(p.y < -5){
       p.y = canvas.height + 5;
       p.x = Math.random()*canvas.width;
     }
 
+    // 그리기
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.arc(p.x,p.y,p.size + glow*1.5,0,Math.PI*2);
 
-    ctx.fillStyle = "rgba(0,0,0,"+p.opacity+")";
+    const opacity = p.baseOpacity + glow*0.7;
+
+    ctx.fillStyle = "rgba(0,0,0,"+opacity+")";
+
+    ctx.shadowBlur = glow*15;
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+
     ctx.fill();
+
+    ctx.shadowBlur = 0;
 
   });
 

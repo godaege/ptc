@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  background:transparent;
+}
+
+canvas{
+  display:block;
+}
+</style>
+
+</head>
+<body>
+
+<canvas id="space"></canvas>
+
+<script>
+
+const canvas = document.getElementById("space");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+resize();
+window.addEventListener("resize",resize);
+
+const particles = [];
+const particleCount = 120;
+
+for(let i=0;i<particleCount;i++){
+
+  particles.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    size: Math.random()*2+0.5,
+    speedY: Math.random()*0.4+0.1,
+    speedX: (Math.random()-0.5)*0.2,
+    opacity: Math.random()*0.6+0.3
+  });
+
+}
+
+function draw(){
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // 파티클
+  particles.forEach(p=>{
+
+    p.y -= p.speedY;
+    p.x += p.speedX;
+
+    if(p.y < -5){
+      p.y = canvas.height + 5;
+      p.x = Math.random()*canvas.width;
+    }
+
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+
+    ctx.fillStyle = "rgba(0,0,0,"+p.opacity+")";
+    ctx.fill();
+
+  });
+
+  // 상단 그라데이션
+  const gradient = ctx.createLinearGradient(0,0,0,canvas.height*0.4);
+
+  gradient.addColorStop(0,"rgba(0,0,0,0.8)");
+  gradient.addColorStop(1,"rgba(0,0,0,0)");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0,0,canvas.width,canvas.height*0.4);
+
+  requestAnimationFrame(draw);
+}
+
+draw();
+
+</script>
+
+</body>
+</html>
